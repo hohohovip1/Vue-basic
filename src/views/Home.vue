@@ -1,51 +1,39 @@
 <template>
-  <div class="home">
-    <h1>Home</h1>
-    <input type="text" v-model="search" />
-    <div>search term - {{ search }}</div>
-    <div v-for="name in matchingNames" :key="name">{{ name }}</div>
-    <button @click="handleClick">stop watching</button>
-  </div>
+    <div class="home">
+        <h1>Home</h1>
+        <PostList v-if="showPosts" :posts="posts" />
+        <button @click="showPosts = !showPosts">Toggle posts</button>
+        <button @click="posts.pop()">delete a post</button>
+    </div>
 </template>
 
 <script>
-import { computed, ref, watch, watchEffect } from 'vue';
-
+import { ref } from "vue";
+import PostList from "../components/PostList.vue";
 export default {
-  name: 'Home',
-  setup() {
-    const search = ref('');
-    const names = ref([
-      'mario',
-      'yoshi',
-      'luigi',
-      'toad',
-      'bowser',
-      'koopa',
-      'peach',
-    ]);
+    name: "Home",
+    components: { PostList },
+    setup() {
+        const posts = ref([]);
+        const error = ref(null);
 
-    const stopWatch = watch(search, () => {
-      console.log('watch function run');
-    });
+        const load = async () => {
+            try {
+                let data = await fetch("http://localhost:3000/posts");
+                if (!data.ok) {
+                    throw Error("no data available");
+                }
+                posts.value = await data.json();
+            } catch (err) {
+                error.value = err.message;
+                console.log(error.value);
+            }
+        };
 
-    const stopEffect = watchEffect(() => {
-      console.log('watch effect function run', search.value);
-    });
-    const matchingNames = computed(() => {
-      return names.value.filter((name) => name.includes(search.value));
-    });
-    const handleClick = () => {
-      stopWatch();
-      stopEffect();
-    };
+        load();
 
-    return {
-      names,
-      search,
-      matchingNames,
-      handleClick,
-    };
-  },
+        const showPosts = ref(true);
+        return { posts, showPosts };
+    },
 };
 </script>
