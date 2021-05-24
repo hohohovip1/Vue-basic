@@ -1,9 +1,11 @@
 <template>
     <div class="home">
         <h1>Home</h1>
-        <PostList v-if="showPosts" :posts="posts" />
-        <button @click="showPosts = !showPosts">Toggle posts</button>
-        <button @click="posts.pop()">delete a post</button>
+        <div v-if="error">{{ error }}</div>
+        <div v-if="posts.length">
+            <PostList :posts="posts" />
+        </div>
+        <div v-else>Loading...</div>
     </div>
 </template>
 
@@ -26,14 +28,12 @@ export default {
                 posts.value = await data.json();
             } catch (err) {
                 error.value = err.message;
-                console.log(error.value);
             }
         };
 
         load();
 
-        const showPosts = ref(true);
-        return { posts, showPosts };
+        return { posts, error };
     },
 };
 </script>
